@@ -1,0 +1,110 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+								<head>
+																<title>Tagged</title>
+																<link rel="stylesheet" type="text/css" href="semantic-ui/semantic.min.css">
+																<link rel="stylesheet" type="text/css" href="semantic-ui-icon/icon.min.css">
+																<link rel="stylesheet" type="text/css" href="index.css">
+								</head>
+
+								<body>
+																<div id="SidebarNode" class="ui sidebar inverted vertical menu slide along">
+																								<div class="item">
+																																<b><i class="user outline icon"></i>HankelBao</b>
+																								</div>
+																								<div class="item">
+																																<div class="app-sidebar-item-div">
+																																								<b><i class="file outline icon"></i>Notes</b>
+																																</div>
+																																<div class="app-sidebar-item-div">
+																																								<b><i class="unordered list icon"></i>Todos</b>
+																																</div>
+																								</div>
+																								<div class="item">
+																																<div class="header"><i class="archive icon"></i>Tags</div>
+																																<div class="app-sidebar-tag-div menu">
+																																								<a class="app-sidebar-tag item"><b># Test1</b></a>
+																																								<a class="app-sidebar-tag item"><b># Test2</b></a>
+																																</div>
+																								</div>
+																</div>
+
+
+																<div class="app-interface-div dimmed pusher">
+																								<div class="app-overview-div">
+																																<div class="app-overview-top-div">
+																																								<i onclick="toggle_sidebar()" class="large sidebar icon"></i>
+																																								<i class="large edit icon"></i>
+																																</div>
+																																<div class="app-overview-bottom-div">
+																																								<div class="app-overview-item-outter selected">
+																																																<div class="app-overview-item-inner">
+																																																								<div class="app-overview-item-title"><b>Notes About Chemistry Class</b></div>
+																																																								<div class="app-overview-item-des">H2O is a very important thing in the world which supports the lifes of almost everything. We should all try to protect them</div>
+																																																</div>
+																																								</div>
+																																								<div class="app-overview-item-outter">
+																																																<div class="app-overview-item-inner">
+																																																								<div class="app-overview-item-title"><b>Notes About Chemistry Class</b></div>
+																																																								<div class="app-overview-item-des">H2O is a very important thing in the world which supports the lifes of almost everything. We should all try to protect them</div>
+																																																</div>
+																																								</div>
+																																</div>
+																								</div>
+
+																								<div id="ContentNode" class="app-content-div">
+																																<div class="app-content-div-inner">
+																																								<div v-for="(line, index) in lines">
+																																																<div v-if="index === current_line">
+																																																								<div class="app-line-container">
+																																																																<div class="app-render-input-left app-line-left">>></div>
+																																																																<div class="app-line-right">
+																																																																								<input autofocus id="current_input" v-model="line.text" v-on:keyup.enter ="onEnter" class="app-render-input-right"/>
+																																																																								</br>
+																																																																</div>
+																																																								</div>
+																																																</div>
+																																																<div v-else>
+																																																								<div v-on:click="onLineClick(index)" class="app-line-container">
+																																																																<div v-if="line.left === 'TITLE'">
+																																																																								<div class="app-render-h1-div app-line-container">
+																																																																																<div class="app-render-h1-left app-line-left">
+																																																																																								{{ line.left }}
+																																																																																								</br>
+																																																																																</div>
+																																																																																<div class="app-render-h1-right app-line-right">
+																																																																																								<b>{{ line.right }}</b>
+																																																																																								</br>
+																																																																																</div>
+																																																																								</div>
+																																																																</div>
+																																																																<div v-else>
+																																																																								<div class="app-line-container">
+																																																																																<div class="app-render-text-left app-line-left">
+																																																																																								</br>
+																																																																																</div>
+																																																																																<div class="app-render-text-right app-line-right">
+																																																																																								{{ line.right }}
+																																																																																								</br>
+																																																																																</div>
+																																																																								</div>
+																																																																</div>
+																																																								</div>
+																																																</div>
+																																								</div>
+																																</div>
+																								</div>
+																</div>
+																<script src="jquery/jquery.js"></script>
+																<script src="semantic-ui/semantic.min.js"></script>
+																<script>
+																								function toggle_sidebar() {
+																																$('.ui.sidebar').sidebar('toggle');
+																								}
+																</script>
+																<script src="vue/vue.js"></script>
+																<script src="index.js"></script>
+								</body>
+</html>
