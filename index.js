@@ -46,7 +46,7 @@ var SidebarNode = new Vue({
 var OverviewNode = new Vue({
     el: "#OverviewNode",
     data: {
-	tag_name: null,
+        tag_name: null,
         items: [],
         current_item: -1
     },
@@ -64,7 +64,7 @@ var OverviewNode = new Vue({
         update_items: function() {
             $.getJSON(api_host + "/notes/all?callback=?", function(json) {
                 OverviewNode.items = json.items;
-		OverviewNode.tag_name = json.tag_name;
+                OverviewNode.tag_name = json.tag_name;
                 if (json.current_objectID != undefined) {
                     OverviewNode.update_current_by_id(json.current_objectID);
                 } else {
@@ -103,21 +103,47 @@ var ContentNode = new Vue({
         /*
          * Note Handling Functions
          */
-        create_note: function() {
-            $.getJSON(api_host + "/notes/create?callback=?", function(json) {
+        unlock_write: function() {
+	    this.sync_items += 1;
+            $.getJSON(api_host + "/notes/unlock?callback=?", function(json) {
+		ContentNode.sync_items -= 1;
+	    });
+        },
+        load_note: function() {
+	    this.sync_items += 1;
+            $.getJSON(api_host + "/notes/load?callback=?", function(json) {
                 ContentNode.current_line = Number(json.current_line);
                 ContentNode.maximum_line = Number(json.maximum_line);
                 ContentNode.lines = json.lines;
-                ContentNode.title = null;
-                ContentNode.tags = null;
-                ContentNode.sync_items = 0;
+                ContentNode.title = json.title;
+                ContentNode.tags = json.tags;
+                OverviewNode.update_items();
+		ContentNode.unlock_write();
+		ContentNode.sync_items -= 1;
+            });
+        },
+        open_note: function(objectID) {
+	    this.sync_items += 1;
+            $.getJSON(api_host + "/notes/open?callback=?", {
+                "objectID": objectID
+            }, function(json) {
+                ContentNode.load_note();
+                ContentNode.sync_items -= 1;
+            });
+        },
+        create_note: function() {
+	    this.sync_items += 1;
+            $.getJSON(api_host + "/notes/create?callback=?", function(json) {
+                ContentNode.load_note();
+		ContentNode.sync_items -= 1;
             });
         },
         delete_note: function() {
+	    this.sync_items += 1;
             $.getJSON(api_host + "/notes/delete?callback=?", function(json) {
-                OverviewNode.update_items();
-		SidebarNode.tags_update();
-                ContentNode.create_note();
+                SidebarNode.tags_update();
+                ContentNode.load_note();
+		ContentNode.sync_items -= 1;
             });
         },
         save_note: function() {
@@ -130,40 +156,8 @@ var ContentNode = new Vue({
                 "tags": JSON.stringify(this.tags)
             }, function(json) {
                 OverviewNode.update_items();
-		SidebarNode.tags_update();
-                if (ContentNode.sync_items > 0) {
-                    ContentNode.sync_items -= 1;
-                }
-            });
-        },
-        open_note: function(objectID) {
-            ContentNode.sync_items += 1;
-            $.getJSON(api_host + "/notes/open?callback=?", {
-                "objectID": objectID
-            }, function(json) {
-                ContentNode.current_line = Number(json.current_line);
-                ContentNode.maximum_line = Number(json.maximum_line);
-                ContentNode.lines = json.lines;
-                ContentNode.title = json.title;
-                ContentNode.tags = json.tags;
+                SidebarNode.tags_update();
                 ContentNode.sync_items -= 1;
-		$.getJSON(api_host + "/notes/unlock?callback=?");
-            });
-        },
-        recover_note: function() {
-            $.getJSON(api_host + "/notes/recover?callback=?", function(json) {
-                ContentNode.current_line = Number(json.current_line);
-                ContentNode.maximum_line = Number(json.maximum_line);
-                ContentNode.lines = json.lines;
-                ContentNode.title = json.title;
-                ContentNode.tags = json.tags;
-                ContentNode.sync_items = 0;
-                if (json.objectID == undefined) {
-                    OverviewNode.set_default_current();
-                } else {
-                    OverviewNode.update_items()
-                    OverviewNode.update_current_by_id(json.objectID);
-                }
             });
         },
         /*
@@ -304,6 +298,6 @@ var ContentNode = new Vue({
         $("#current_input").focus();
     },
     created: function() {
-        this.recover_note();
+        this.load_note();
     }
 });
