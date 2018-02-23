@@ -117,8 +117,8 @@ var ContentNode = new Vue({
                 ContentNode.lines = json.lines;
                 ContentNode.title = json.title;
                 ContentNode.tags = json.tags;
-                OverviewNode.update_items();
 		ContentNode.unlock_write();
+                OverviewNode.update_items();
 		ContentNode.sync_items -= 1;
             });
         },
