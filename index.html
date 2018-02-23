@@ -1,110 +1,223 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-"http://www.w3.org/TR/html4/loose.dtd">
-
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
 <html>
-								<head>
-																<title>Tagged</title>
-																<link rel="stylesheet" type="text/css" href="semantic-ui/semantic.min.css">
-																<link rel="stylesheet" type="text/css" href="semantic-ui-icon/icon.min.css">
-																<link rel="stylesheet" type="text/css" href="index.css">
-								</head>
 
-								<body>
-																<div id="SidebarNode" class="ui sidebar inverted vertical menu slide along">
-																								<div class="item">
-																																<b><i class="user outline icon"></i>HankelBao</b>
-																								</div>
-																								<div class="item">
-																																<div class="app-sidebar-item-div">
-																																								<b><i class="file outline icon"></i>Notes</b>
-																																</div>
-																																<div class="app-sidebar-item-div">
-																																								<b><i class="unordered list icon"></i>Todos</b>
-																																</div>
-																								</div>
-																								<div class="item">
-																																<div class="header"><i class="archive icon"></i>Tags</div>
-																																<div class="app-sidebar-tag-div menu">
-																																								<a class="app-sidebar-tag item"><b># Test1</b></a>
-																																								<a class="app-sidebar-tag item"><b># Test2</b></a>
-																																</div>
-																								</div>
-																</div>
+<head>
+    <title>Tagged</title>
+    <link rel="stylesheet" type="text/css" href="semantic-ui/semantic.min.css">
+    <link rel="stylesheet" type="text/css" href="semantic-ui-icon/icon.min.css">
+    <link rel="stylesheet" type="text/css" href="index.css">
+    <link rel="stylesheet" type="text/css" href="render.css">
+</head>
 
+<body>
+    <div id="SidebarNode" class="ui sidebar inverted vertical menu slide along">
+        <div class="item"><b><i class="user icon"></i>HankelBao</b></div>
+        <div class="item">
+            <div v-on:click="tags_open(-1)" class="app-sidebar-item-div"><b><i class="file outline icon"></i>Notes</b></div>
+            <div class="app-sidebar-item-div"><b><i class="unordered list icon"></i>Todos</b></div>
+        </div>
+        <div class="item">
+            <div class="header"><i class="archive icon"></i>Tags</div>
+            <div class="app-sidebar-tag-div menu">
+                <div v-for="(item, index) in items">
+                    <a v-on:click="tags_open(index)" class="app-sidebar-tag item"><b># {{item.name}}</b></a>
+                </div>
+            </div>
+        </div>
+    </div>
 
-																<div class="app-interface-div dimmed pusher">
-																								<div class="app-overview-div">
-																																<div class="app-overview-top-div">
-																																								<i onclick="toggle_sidebar()" class="large sidebar icon"></i>
-																																								<i class="large edit icon"></i>
-																																</div>
-																																<div class="app-overview-bottom-div">
-																																								<div class="app-overview-item-outter selected">
-																																																<div class="app-overview-item-inner">
-																																																								<div class="app-overview-item-title"><b>Notes About Chemistry Class</b></div>
-																																																								<div class="app-overview-item-des">H2O is a very important thing in the world which supports the lifes of almost everything. We should all try to protect them</div>
-																																																</div>
-																																								</div>
-																																								<div class="app-overview-item-outter">
-																																																<div class="app-overview-item-inner">
-																																																								<div class="app-overview-item-title"><b>Notes About Chemistry Class</b></div>
-																																																								<div class="app-overview-item-des">H2O is a very important thing in the world which supports the lifes of almost everything. We should all try to protect them</div>
-																																																</div>
-																																								</div>
-																																</div>
-																								</div>
+    <div class="app-interface-div dimmed pusher">
+        <div id="OverviewNode" class="app-overview-div">
+            <div class="app-overview-top-div">
+                <div class="app-overview-top-left">
+                    <i v-on:click="toggleSidebar" class="large sidebar icon"></i>
+                </div>
+                <div class="app-overview-top-mid">
+                    {{tag_name}}
+                </div>
+                <div class="app-overview-top-right">
+                    <i v-on:click="onClick_create" class="large edit icon"></i>
+                </div>
+            </div>
+            <div class="app-overview-bottom-div">
+                <div v-for="(item, index) in items">
+                    <div v-on:click="onClick_item(index)" class="app-overview-item-outter" v-bind:class="{selected: current_item == index}">
+                        <div class="app-overview-item-inner">
+                            <div class="app-overview-item-title">
+                                <b> {{item.title}}</b>
+                            </div>
+                            <div class="app-overview-item-des">
+                                {{ item.des }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="ContentNode" class="app-content-div">
+            <div class="app-content-div-outter">
+                <div class="app-content-div-inner">
+                    <div v-for="(line, index) in lines">
+                        <div v-if="index === current_line">
+                            <div class="app-render-input-div app-line-container">
+                                <div class="app-render-input-left app-line-left editing">
+                                    <i v-on:click="submit_current_line" class="plus icon"></i>
+                                    <i v-on:click="delete_current_line" class="minus icon"></i>
+                                    <i class="angle double right icon"></i>
+                                </div>
+                                <div class="app-line-right">
+                                    <input autofocus id="current_input" v-model="line.raw" v-on:keyup="phrase_current_line"
+                                        v-on:keyup.enter="onEnter" v-on:keyup.delete="onDelete"
+                                        v-on:keyup.up="onUp" v-on:keyup.down="onDown"
+                                        class="app-render-input-right" />
+                                    </br>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-else>
+                            <div v-if="line.type === 'h1'">
+                                <div class="app-render-h1-div app-line-container">
+                                    <div class="app-render-h1-left app-line-left">
+                                        H1
+                                        </br>
+                                    </div>
+                                    <div v-on:click="onLineClick(index)" class="app-render-h1-right app-line-right">
+                                        <b>{{line.text}}</b>
+                                        </br>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-else-if="line.type === 'h2'">
+                                <div class="app-render-h2-div app-line-container">
+                                    <div class="app-render-h2-left app-line-left">
+                                        H2
+                                        </br>
+                                    </div>
+                                    <div v-on:click="onLineClick(index)" class="app-render-h2-right app-line-right">
+                                        <b>{{line.text}}</b>
+                                        </br>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-else-if="line.type === 'h3'">
+                                <div class="app-render-h3-div app-line-container">
+                                    <div class="app-render-h3-left app-line-left">
+                                        H3
+                                        </br>
+                                    </div>
+                                    <div v-on:click="onLineClick(index)" class="app-render-h3-right app-line-right">
+                                        <b>{{line.text}}</b></br>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-else-if="line.type === 'dt'">
+                                <div class="app-line-container">
+                                    <div class="app-line-left">
+                                        <i class="hashtag icon"></i>
+                                        </br>
+                                    </div>
+                                    <div v-on:click="onLineClick(index)" class="app-render-dt-right app-line-right">
+                                        {{ line.text }}
+                                        </br>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-else-if="line.type === 'list'">
+                                <div class="app-line-container">
+                                    <div class="app-line-left">
+                                        &bull;
+                                        </br>
+                                    </div>
+                                    <div v-on:click="onLineClick(index)" class="app-line-right">
+                                        <font v-html="line.text"></font>
+                                        </br>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-else-if="line.type === 'box'">
+                                <div class="app-line-container">
+                                    <div v-on:click="onBoxClick(index)" class="app-line-left">
+                                        <i class="square outline icon"></i>
+                                        </br>
+                                    </div>
+                                    <div v-on:click="onLineClick(index)" class="app-line-right">
+                                        <font v-html="line.text"></font>
+                                        </br>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-else-if="line.type === 'sbox'">
+                                <div class="app-line-container">
+                                    <div v-on:click="onBoxClick(index)" class="app-line-left">
+                                        <i class="check square outline icon"></i>
+                                        </br>
+                                    </div>
+                                    <div v-on:click="onLineClick(index)" class="app-line-right">
+                                        <font v-html="line.text"></font>
+                                        </br>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-else-if="line.type === 'middle'">
+                                <div class="app-line-container">
+                                    <div class="app-line-left">
+                                        </br>
+                                    </div>
+                                    <div v-on:click="onLineClick(index)" class="app-render-middle-right app-line-right">
+                                        <font v-html="line.text"></font>
+                                        </br>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-else>
+                                <div class="app-render-text-div app-line-container">
+                                    <div class="app-render-text-left app-line-left">
+                                        </br>
+                                    </div>
+                                    <div v-on:click="onLineClick(index)" class="app-render-text-right app-line-right">
+                                        <font v-html="line.text"></font>
+                                        </br>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="app-content-info-div">
+                <div class="app-content-info-left">
+                    <font v-if="sync_items > 0">
+                        Syncing
+                    </font>
+                    <font v-else>
+                        Ready
+                    </font>
+                    <b>{{title}}</b> : {{current_line}} / {{maximum_line}} | <b>Tags:</b>
+                    <font v-for="tag in tags">#{{tag}} </font>
+                </div>
+                <div v-on:click="onToggleDelete" class="app-content-info-right">
+                    <b>Delete Current Document</b>
+                </div>
+            </div>
+            <div class="ui basic modal">
+                <div class="ui icon header">
+                    DELETE "{{title}}" ?
+                </div>
+                <div class="actions">
+                    <div class="ui basic cancel inverted button">
+                        <i class="remove icon"></i> No
+                    </div>
+                    <div v-on:click="delete_note" class="ui red ok inverted button">
+                        <i class="checkmark icon"></i> Yes
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="jquery/jquery.js"></script>
+    <script src="semantic-ui/semantic.min.js"></script>
+    <script src="vue/vue.js"></script>
+    <script src="index.js"></script>
+</body>
 
-																								<div id="ContentNode" class="app-content-div">
-																																<div class="app-content-div-inner">
-																																								<div v-for="(line, index) in lines">
-																																																<div v-if="index === current_line">
-																																																								<div class="app-line-container">
-																																																																<div class="app-render-input-left app-line-left">>></div>
-																																																																<div class="app-line-right">
-																																																																								<input autofocus id="current_input" v-model="line.text" v-on:keyup.enter ="onEnter" class="app-render-input-right"/>
-																																																																								</br>
-																																																																</div>
-																																																								</div>
-																																																</div>
-																																																<div v-else>
-																																																								<div v-on:click="onLineClick(index)" class="app-line-container">
-																																																																<div v-if="line.left === 'TITLE'">
-																																																																								<div class="app-render-h1-div app-line-container">
-																																																																																<div class="app-render-h1-left app-line-left">
-																																																																																								{{ line.left }}
-																																																																																								</br>
-																																																																																</div>
-																																																																																<div class="app-render-h1-right app-line-right">
-																																																																																								<b>{{ line.right }}</b>
-																																																																																								</br>
-																																																																																</div>
-																																																																								</div>
-																																																																</div>
-																																																																<div v-else>
-																																																																								<div class="app-line-container">
-																																																																																<div class="app-render-text-left app-line-left">
-																																																																																								</br>
-																																																																																</div>
-																																																																																<div class="app-render-text-right app-line-right">
-																																																																																								{{ line.right }}
-																																																																																								</br>
-																																																																																</div>
-																																																																								</div>
-																																																																</div>
-																																																								</div>
-																																																</div>
-																																								</div>
-																																</div>
-																								</div>
-																</div>
-																<script src="jquery/jquery.js"></script>
-																<script src="semantic-ui/semantic.min.js"></script>
-																<script>
-																								function toggle_sidebar() {
-																																$('.ui.sidebar').sidebar('toggle');
-																								}
-																</script>
-																<script src="vue/vue.js"></script>
-																<script src="index.js"></script>
-								</body>
 </html>
