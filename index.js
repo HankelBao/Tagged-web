@@ -156,7 +156,6 @@ var ContentNode = new Vue({
                 "tags": JSON.stringify(this.tags)
             }, function(json) {
                 OverviewNode.update_items();
-                SidebarNode.tags_update();
                 ContentNode.sync_items -= 1;
             });
         },
@@ -186,6 +185,7 @@ var ContentNode = new Vue({
                 } else {
                     this.tags = text.split(" ");
                 }
+                SidebarNode.tags_update();
             } else if (raw.includes('@* ')) {
                 type = "list";
                 text = raw.replace(/@\* /, "");
