@@ -16,12 +16,14 @@ var api_host = "http://127.0.0.1:8080";
 var SidebarNode = new Vue({
     el: "#SidebarNode",
     data: {
-        items: null
+        items: null,
+	username: null
     },
     methods: {
         tags_update: function() {
             $.getJSON(api_host + "/tags/all?callback=?", function(json) {
                 SidebarNode.items = json.items;
+		SidebarNode.username = json.username;
             });
         },
         tags_open: function(index) {
