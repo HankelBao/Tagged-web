@@ -55,11 +55,16 @@ var OverviewNode = new Vue({
             this.current_item = -1;
         },
         update_current_by_id: function(objectID) {
+            this.founded = 0;
             $.each(this.items, function(index, item) {
                 if (item.objectID == objectID) {
                     OverviewNode.current_item = index;
+                    OverviewNode.founded = 1;
                 }
             });
+            if (this.founded == 0) {
+                this.set_default_current();
+            }
         },
         update_items: function() {
             $.getJSON(api_host + "/notes/all?callback=?", function(json) {
@@ -104,26 +109,26 @@ var ContentNode = new Vue({
          * Note Handling Functions
          */
         unlock_write: function() {
-	    this.sync_items += 1;
+            this.sync_items += 1;
             $.getJSON(api_host + "/notes/unlock?callback=?", function(json) {
-		ContentNode.sync_items -= 1;
-	    });
+                ContentNode.sync_items -= 1;
+            });
         },
         load_note: function() {
-	    this.sync_items += 1;
+            this.sync_items += 1;
             $.getJSON(api_host + "/notes/load?callback=?", function(json) {
                 ContentNode.current_line = Number(json.current_line);
                 ContentNode.maximum_line = Number(json.maximum_line);
                 ContentNode.lines = json.lines;
                 ContentNode.title = json.title;
                 ContentNode.tags = json.tags;
-		ContentNode.unlock_write();
+                ContentNode.unlock_write();
                 OverviewNode.update_items();
-		ContentNode.sync_items -= 1;
+                ContentNode.sync_items -= 1;
             });
         },
         open_note: function(objectID) {
-	    this.sync_items += 1;
+            this.sync_items += 1;
             $.getJSON(api_host + "/notes/open?callback=?", {
                 "objectID": objectID
             }, function(json) {
@@ -132,18 +137,18 @@ var ContentNode = new Vue({
             });
         },
         create_note: function() {
-	    this.sync_items += 1;
+            this.sync_items += 1;
             $.getJSON(api_host + "/notes/create?callback=?", function(json) {
                 ContentNode.load_note();
-		ContentNode.sync_items -= 1;
+                ContentNode.sync_items -= 1;
             });
         },
         delete_note: function() {
-	    this.sync_items += 1;
+            this.sync_items += 1;
             $.getJSON(api_host + "/notes/delete?callback=?", function(json) {
                 SidebarNode.tags_update();
                 ContentNode.load_note();
-		ContentNode.sync_items -= 1;
+                ContentNode.sync_items -= 1;
             });
         },
         save_note: function() {
@@ -156,6 +161,7 @@ var ContentNode = new Vue({
                 "tags": JSON.stringify(this.tags)
             }, function(json) {
                 OverviewNode.update_items();
+                SidebarNode.tags_update();
                 ContentNode.sync_items -= 1;
             });
         },
@@ -185,7 +191,6 @@ var ContentNode = new Vue({
                 } else {
                     this.tags = text.split(" ");
                 }
-                SidebarNode.tags_update();
             } else if (raw.includes('@* ')) {
                 type = "list";
                 text = raw.replace(/@\* /, "");
